@@ -83,7 +83,7 @@ export function SplineBackground({ isLoading }: SplineBackgroundProps) {
       trigger: '#phase-2',
       start: 'top 85%',
       end: 'top 25%',
-      scrub: 0.8,
+      scrub: 0.3,
       animation: gsap.fromTo(splineWrapper, {
         scale: 0.65,
         x: '25%',
@@ -94,16 +94,22 @@ export function SplineBackground({ isLoading }: SplineBackgroundProps) {
       }),
     })
 
-    // --- Phase 2 → Phase 3: Fade out the entire container (object + black bg) ---
+    // --- Phase 2 → Phase 3: Fade out + hide the entire container ---
     ScrollTrigger.create({
       trigger: '#phase-3',
       start: 'top 95%',
       end: 'top 30%',
-      scrub: 1.2,
+      scrub: 0.3,
       animation: gsap.to(container, {
         opacity: 0,
         ease: 'none',
       }),
+      onLeave: () => {
+        container.style.visibility = 'hidden'
+      },
+      onEnterBack: () => {
+        container.style.visibility = 'visible'
+      },
     })
 
     // When scrolling back up into Phase 2 from Phase 3, fade container back in
@@ -112,9 +118,10 @@ export function SplineBackground({ isLoading }: SplineBackgroundProps) {
       start: 'bottom 90%',
       end: 'bottom bottom',
       onEnterBack: () => {
+        container.style.visibility = 'visible'
         gsap.to(container, {
           opacity: 1,
-          duration: 1,
+          duration: 0.3,
           ease: 'power2.out',
         })
       },
@@ -141,6 +148,7 @@ export function SplineBackground({ isLoading }: SplineBackgroundProps) {
           opacity: 0,
           transform: 'scale(0.6) translateX(25%)',
           transformOrigin: 'center center',
+          willChange: 'transform, opacity',
         }}
       >
         <Spline

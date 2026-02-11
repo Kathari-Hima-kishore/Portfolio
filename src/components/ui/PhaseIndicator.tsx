@@ -1,4 +1,4 @@
-'use client'
+import { memo } from 'react'
 
 interface Phase {
   id: number
@@ -11,7 +11,7 @@ interface PhaseIndicatorProps {
   activePhase: number
 }
 
-export function PhaseIndicator({ phases, activePhase }: PhaseIndicatorProps) {
+export const PhaseIndicator = memo(function PhaseIndicator({ phases, activePhase }: PhaseIndicatorProps) {
   const scrollToPhase = (phaseId: number) => {
     const element = document.getElementById(`phase-${phaseId}`)
     if (element) {
@@ -44,7 +44,7 @@ export function PhaseIndicator({ phases, activePhase }: PhaseIndicatorProps) {
           <div
             className={`
               absolute right-full mr-4 px-3 py-1 rounded-md
-              bg-white/10 backdrop-blur-sm border border-white/20
+              bg-white/10 border border-white/20
               text-white text-sm font-medium whitespace-nowrap
               opacity-0 group-hover:opacity-100 transition-opacity duration-200
               pointer-events-none
@@ -56,4 +56,4 @@ export function PhaseIndicator({ phases, activePhase }: PhaseIndicatorProps) {
       ))}
     </div>
   )
-}
+})

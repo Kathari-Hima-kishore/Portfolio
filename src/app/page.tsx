@@ -23,6 +23,14 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
   const [activePhase, setActivePhase] = useState(1)
   const isAutoScrollingRef = useRef(false)
+  const sectionsRef = useRef<HTMLElement[]>([])
+
+  // Cache section DOM references once after mount
+  useEffect(() => {
+    sectionsRef.current = phases
+      .map(p => document.getElementById(`phase-${p.id}`))
+      .filter(Boolean) as HTMLElement[]
+  }, [isLoading])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -40,20 +48,19 @@ export default function Home() {
 
       if (isAutoScrollingRef.current) return
 
-      const sections = phases
-        .map(p => document.getElementById(`phase-${p.id}`))
-        .filter(Boolean) as HTMLElement[]
-
+      const sections = sectionsRef.current
       if (sections.length === 0) return
 
       const scrollY = window.scrollY
 
-      // Find current section: the one whose top is closest to scrollY
+      // Find the nearest section by smallest distance
       let currentIndex = 0
-      for (let i = sections.length - 1; i >= 0; i--) {
-        if (scrollY >= sections[i].offsetTop - window.innerHeight * 0.3) {
+      let minDist = Infinity
+      for (let i = 0; i < sections.length; i++) {
+        const dist = Math.abs(scrollY - sections[i].offsetTop)
+        if (dist < minDist) {
+          minDist = dist
           currentIndex = i
-          break
         }
       }
 
@@ -66,12 +73,13 @@ export default function Home() {
       setActivePhase(targetIndex + 1)
       gsap.to(window, {
         scrollTo: { y: sections[targetIndex], autoKill: false },
-        duration: 0.5,
+        duration: 0.4,
         ease: 'power2.out',
-        onComplete: () => {
-          isAutoScrollingRef.current = false
-        },
       })
+      // Release lock after a fixed cooldown, independent of GSAP
+      setTimeout(() => {
+        isAutoScrollingRef.current = false
+      }, 600)
     }
 
     // Use capture phase so this fires BEFORE any child element handlers
@@ -97,7 +105,7 @@ export default function Home() {
             <p className="text-accent text-sm tracking-[0.3em] uppercase mb-4 font-medium">
               Phase 1
             </p>
-            <h1 className="text-5xl md:text-7xl font-bold text-white drop-shadow-lg leading-tight mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-6">
               Initialization
             </h1>
             <p className="text-lg md:text-xl text-white/60 max-w-md leading-relaxed">
@@ -123,7 +131,7 @@ export default function Home() {
             <p className="text-accent text-sm tracking-[0.3em] uppercase mb-3 font-medium">
               Phase 2
             </p>
-            <h2 className="text-5xl md:text-6xl font-bold text-white drop-shadow-lg">
+            <h2 className="text-5xl md:text-6xl font-bold text-white">
               Exploration
             </h2>
           </div>
@@ -137,10 +145,10 @@ export default function Home() {
             className="min-h-screen flex items-center justify-center p-8"
           >
             <div className="text-center">
-              <h2 className="text-6xl font-bold mb-4 text-white drop-shadow-lg">
+              <h2 className="text-6xl font-bold mb-4 text-white">
                 {phase.title}
               </h2>
-              <p className="text-2xl text-white/80 drop-shadow">
+              <p className="text-2xl text-white/80">
                 {phase.name}
               </p>
             </div>
