@@ -5,27 +5,15 @@ import Spline from '@splinetool/react-spline'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
+
 interface SplineBackgroundProps {
   isLoading: boolean
 }
 
 export function SplineBackground({ isLoading }: SplineBackgroundProps) {
-  const [app, setApp] = useState<any>(null)
-  const [mainObject, setMainObject] = useState<any>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const splineWrapperRef = useRef<HTMLDivElement>(null)
-  const baseTransformRef = useRef<{
-    position: { x: number; y: number; z: number }
-    rotation: { x: number; y: number; z: number }
-    scale: { x: number; y: number; z: number }
-  } | null>(null)
-
-  const readValue = (value: any): number => {
-    if (typeof value === 'number') return value
-    if (value?._value !== undefined) return value._value
-    if (value?.value !== undefined) return value.value
-    return 0
-  }
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger)
@@ -39,56 +27,12 @@ export function SplineBackground({ isLoading }: SplineBackgroundProps) {
       controls.enableRotate = false
       if (controls.update) controls.update()
     }
-
-    setApp(splineApp)
-
-    const allObjects = splineApp.getAllObjects()
-    let foundObject = null
-
-    try {
-      foundObject = splineApp.findObjectByName('mething')
-    } catch (e) {}
-
-    if (!foundObject) {
-      const skipNameParts = [
-        'camera', 'light', 'directional', 'ambient', 'spot', 'point',
-        'helper', 'target', 'rig', 'orbit', 'null', 'empty', 'rectangle', 'text'
-      ]
-      const candidates = allObjects.filter((obj: any) => {
-        if (!obj || !obj.name) return false
-        const name = String(obj.name).toLowerCase()
-        if (skipNameParts.some(part => name.includes(part))) return false
-        if (!obj.position || !obj.rotation || !obj.scale) return false
-        return true
-      })
-      if (candidates.length > 0) foundObject = candidates[0]
-    }
-
-    if (!foundObject) return
-
-    baseTransformRef.current = {
-      position: {
-        x: readValue(foundObject.position.x),
-        y: readValue(foundObject.position.y),
-        z: readValue(foundObject.position.z),
-      },
-      rotation: {
-        x: readValue(foundObject.rotation._x ?? foundObject.rotation.x),
-        y: readValue(foundObject.rotation._y ?? foundObject.rotation.y),
-        z: readValue(foundObject.rotation._z ?? foundObject.rotation.z),
-      },
-      scale: {
-        x: readValue(foundObject.scale.x),
-        y: readValue(foundObject.scale.y),
-        z: readValue(foundObject.scale.z),
-      },
-    }
-    setMainObject(foundObject)
+    setIsLoaded(true)
   }
 
   // Animate the Spline wrapper: fade in, shift, scale, fade out
   useEffect(() => {
-    if (!mainObject || isLoading || !containerRef.current || !splineWrapperRef.current) return
+    if (!isLoaded || isLoading || !containerRef.current || !splineWrapperRef.current) return
 
     const container = containerRef.current
     const splineWrapper = splineWrapperRef.current
@@ -181,7 +125,7 @@ export function SplineBackground({ isLoading }: SplineBackgroundProps) {
     return () => {
       ScrollTrigger.getAll().forEach(trigger => trigger.kill())
     }
-  }, [mainObject, isLoading, app])
+  }, [isLoaded, isLoading])
 
   if (isLoading) return null
 

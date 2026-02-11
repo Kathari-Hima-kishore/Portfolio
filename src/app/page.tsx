@@ -3,12 +3,11 @@
 import { SplineBackground } from '@/components/SplineBackground'
 import { Loader } from '@/components/ui/Loader'
 import { PhaseIndicator } from '@/components/ui/PhaseIndicator'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin)
+gsap.registerPlugin(ScrollToPlugin)
 
 const phases = [
   { id: 1, name: 'Phase 1', title: 'Initialization' },
@@ -24,7 +23,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
   const [activePhase, setActivePhase] = useState(1)
   const isAutoScrollingRef = useRef(false)
-  const hasAutoScrolledRef = useRef(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -33,72 +31,52 @@ export default function Home() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Phase detection
-  useEffect(() => {
-    const handleScroll = () => {
-      const sections = phases.map(phase =>
-        document.getElementById(`phase-${phase.id}`)
-      )
-      const scrollPosition = window.scrollY + window.innerHeight / 2
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i]
-        if (section && section.offsetTop <= scrollPosition) {
-          setActivePhase(i + 1)
-          break
-        }
-      }
-    }
-    window.addEventListener('scroll', handleScroll)
-    handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // Auto-scroll: snap between Phase 1 and Phase 2 only
+  // Auto-scroll: snap between all phases on every wheel tick
   useEffect(() => {
     if (isLoading) return
 
-    const combinedHandler = (e: WheelEvent) => {
-      // Only intercept scrolling when in Phase 1 or at the very top of Phase 2
-      const phase1 = document.getElementById('phase-1')
-      const phase2 = document.getElementById('phase-2')
-      if (!phase1 || !phase2) return
+    const snapHandler = (e: WheelEvent) => {
+      e.preventDefault()
 
-      const phase2Top = phase2.offsetTop
+      if (isAutoScrollingRef.current) return
 
-      // Auto-scroll down: Phase 1 → Phase 2
-      if (window.scrollY < phase1.offsetHeight * 0.3 && e.deltaY > 0 && !isAutoScrollingRef.current) {
-        e.preventDefault()
-        isAutoScrollingRef.current = true
-        gsap.to(window, {
-          scrollTo: { y: phase2, autoKill: false },
-          duration: 0.8,
-          ease: 'power2.inOut',
-          onComplete: () => { isAutoScrollingRef.current = false },
-        })
-        return
+      const sections = phases
+        .map(p => document.getElementById(`phase-${p.id}`))
+        .filter(Boolean) as HTMLElement[]
+
+      if (sections.length === 0) return
+
+      const scrollY = window.scrollY
+
+      // Find current section: the one whose top is closest to scrollY
+      let currentIndex = 0
+      for (let i = sections.length - 1; i >= 0; i--) {
+        if (scrollY >= sections[i].offsetTop - window.innerHeight * 0.3) {
+          currentIndex = i
+          break
+        }
       }
 
-      // Auto-scroll up: Phase 2 top → Phase 1
-      if (window.scrollY >= phase2Top - 10 && window.scrollY <= phase2Top + 50 && e.deltaY < 0 && !isAutoScrollingRef.current) {
-        e.preventDefault()
-        isAutoScrollingRef.current = true
-        gsap.to(window, {
-          scrollTo: { y: 0, autoKill: false },
-          duration: 0.8,
-          ease: 'power2.inOut',
-          onComplete: () => { isAutoScrollingRef.current = false },
-        })
-        return
-      }
+      const scrollingDown = e.deltaY > 0
+      const targetIndex = scrollingDown ? currentIndex + 1 : currentIndex - 1
 
-      // Block scroll during auto-scroll animation
-      if (isAutoScrollingRef.current) {
-        e.preventDefault()
-      }
+      if (targetIndex < 0 || targetIndex >= sections.length) return
+
+      isAutoScrollingRef.current = true
+      setActivePhase(targetIndex + 1)
+      gsap.to(window, {
+        scrollTo: { y: sections[targetIndex], autoKill: false },
+        duration: 0.5,
+        ease: 'power2.out',
+        onComplete: () => {
+          isAutoScrollingRef.current = false
+        },
+      })
     }
 
-    window.addEventListener('wheel', combinedHandler, { passive: false })
-    return () => window.removeEventListener('wheel', combinedHandler)
+    // Use capture phase so this fires BEFORE any child element handlers
+    document.addEventListener('wheel', snapHandler, { passive: false, capture: true })
+    return () => document.removeEventListener('wheel', snapHandler, { capture: true })
   }, [isLoading])
 
   return (

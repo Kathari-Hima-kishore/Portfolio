@@ -20,8 +20,8 @@ export function ScrollManager() {
             if (e.scroll < 50 && e.velocity > 0) {
                 isScrollingRef.current = true
                 lenis.scrollTo('#phase-2', {
-                    duration: 1.5,
-                    lock: true, // Optional: lock scroll during animation
+                    duration: 0.4,
+                    lock: true,
                     onComplete: () => {
                         isScrollingRef.current = false
                         setHasScrolled(true)
