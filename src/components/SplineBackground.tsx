@@ -1,136 +1,130 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback, memo } from 'react'
 import Spline from '@splinetool/react-spline'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
+gsap.registerPlugin(ScrollTrigger)
 
 interface SplineBackgroundProps {
   isLoading: boolean
 }
 
-export function SplineBackground({ isLoading }: SplineBackgroundProps) {
+export const SplineBackground = memo(function SplineBackground({ isLoading }: SplineBackgroundProps) {
   const [isLoaded, setIsLoaded] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const splineWrapperRef = useRef<HTMLDivElement>(null)
+  const triggersRef = useRef<ScrollTrigger[]>([])
 
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger)
+  // Spline loaded callback — disable orbit controls only
+  const onLoad = useCallback((splineApp: any) => {
+    try {
+      // Disable orbit controls (zoom, pan, rotate via drag)
+      const controls = splineApp?._orbitControls || splineApp?._controls
+      if (controls) {
+        controls.enableZoom = false
+        controls.enablePan = false
+        controls.enableRotate = false
+        controls.enableDamping = false
+        controls.update?.()
+      }
+
+      // Prevent canvas from stealing tab-focus
+      const canvas = splineApp?.renderer?.domElement as HTMLCanvasElement | undefined
+      if (canvas) {
+        canvas.setAttribute('tabindex', '-1')
+        canvas.style.outline = 'none'
+      }
+    } catch (err) {
+      console.error('Error configuring Spline:', err)
+    }
+
+    setIsLoaded(true)
   }, [])
 
-  const onLoad = (splineApp: any) => {
-    const controls = splineApp._orbitControls || splineApp._controls
-    if (controls) {
-      controls.enableZoom = false
-      controls.enablePan = false
-      controls.enableRotate = false
-      if (controls.update) controls.update()
-    }
-    setIsLoaded(true)
-  }
-
-  // Animate the Spline wrapper: fade in, shift, scale, fade out
+  // GSAP scroll-linked animations
   useEffect(() => {
     if (!isLoaded || isLoading || !containerRef.current || !splineWrapperRef.current) return
 
     const container = containerRef.current
-    const splineWrapper = splineWrapperRef.current
+    const wrapper = splineWrapperRef.current
 
-    // --- Phase 1: Fade in on load ---
-    gsap.fromTo(splineWrapper, {
-      opacity: 0,
-      scale: 0.6,
-      x: '25%',
-    }, {
-      opacity: 1,
-      scale: 0.65,
-      x: '25%',
-      duration: 1.8,
-      ease: 'power2.out',
-      delay: 0.3,
-    })
+    // Kill any prior triggers
+    triggersRef.current.forEach((t) => t.kill())
+    triggersRef.current = []
 
-    // --- Phase 1: Idle floating animation (only while in Phase 1) ---
-    const idleFloat = gsap.to(splineWrapper, {
-      y: '-12px',
-      rotation: 1.5,
-      duration: 3,
+    // Phase 1: entrance animation
+    gsap.fromTo(
+      wrapper,
+      { opacity: 0, scale: 0.6, x: '25%' },
+      { opacity: 1, scale: 0.65, x: '25%', duration: 1.2, ease: 'power1.out', delay: 0.2 },
+    )
+
+    // Phase 1: idle float
+    const idleFloat = gsap.to(wrapper, {
+      y: '-10px',
+      rotation: 1,
+      duration: 2.5,
       ease: 'sine.inOut',
       repeat: -1,
       yoyo: true,
-      delay: 2,
+      delay: 1.5,
     })
 
-    // Kill idle animation when leaving Phase 1
-    ScrollTrigger.create({
-      trigger: '#phase-1',
-      start: 'top top',
-      end: 'bottom top',
-      onLeave: () => {
-        idleFloat.kill()
-        gsap.set(splineWrapper, { y: 0, rotation: 0 })
-      },
-      onEnterBack: () => {
-        // Restart idle when scrolling back to Phase 1
-        gsap.set(splineWrapper, { y: 0, rotation: 0 })
-        idleFloat.restart()
-      },
-    })
-
-    // --- Phase 1 → Phase 2: Scale up + center (scrub) ---
-    ScrollTrigger.create({
-      trigger: '#phase-2',
-      start: 'top 85%',
-      end: 'top 25%',
-      scrub: 0.3,
-      animation: gsap.fromTo(splineWrapper, {
-        scale: 0.65,
-        x: '25%',
-      }, {
-        scale: 1,
-        x: '0%',
-        ease: 'none',
+    // Kill float when leaving Phase 1
+    triggersRef.current.push(
+      ScrollTrigger.create({
+        trigger: '#phase-1',
+        start: 'top top',
+        end: 'bottom top',
+        onLeave: () => {
+          idleFloat.kill()
+          gsap.set(wrapper, { y: 0, rotation: 0 })
+        },
+        onEnterBack: () => {
+          gsap.set(wrapper, { y: 0, rotation: 0 })
+          idleFloat.restart()
+        },
       }),
-    })
+    )
 
-    // --- Phase 2 → Phase 3: Fade out + hide the entire container ---
-    ScrollTrigger.create({
-      trigger: '#phase-3',
-      start: 'top 95%',
-      end: 'top 30%',
-      scrub: 0.3,
-      animation: gsap.to(container, {
-        opacity: 0,
-        ease: 'none',
+    // Phase 1 → 2: scale up + center
+    triggersRef.current.push(
+      ScrollTrigger.create({
+        trigger: '#phase-2',
+        start: 'top bottom',
+        end: 'top center',
+        scrub: 0.3,
+        animation: gsap.fromTo(
+          wrapper,
+          { scale: 0.65, x: '25%' },
+          { scale: 1, x: '0%', ease: 'power1.out' },
+        ),
       }),
-      onLeave: () => {
-        container.style.visibility = 'hidden'
-      },
-      onEnterBack: () => {
-        container.style.visibility = 'visible'
-      },
-    })
+    )
 
-    // When scrolling back up into Phase 2 from Phase 3, fade container back in
-    ScrollTrigger.create({
-      trigger: '#phase-2',
-      start: 'bottom 90%',
-      end: 'bottom bottom',
-      onEnterBack: () => {
-        container.style.visibility = 'visible'
-        gsap.to(container, {
-          opacity: 1,
-          duration: 0.3,
-          ease: 'power2.out',
-        })
-      },
-    })
-
-    ScrollTrigger.refresh()
+    // Phase 2 → 3: fade out + hide
+    triggersRef.current.push(
+      ScrollTrigger.create({
+        trigger: '#phase-3',
+        start: 'top 80%',
+        end: 'top 50%',
+        scrub: 0.3,
+        animation: gsap.to(container, { opacity: 0, ease: 'power1.out' }),
+        onLeave: () => {
+          container.style.visibility = 'hidden'
+        },
+        onEnterBack: () => {
+          container.style.visibility = 'visible'
+        },
+      }),
+    )
 
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+      idleFloat.kill()
+      triggersRef.current.forEach((t) => t.kill())
+      triggersRef.current = []
     }
   }, [isLoaded, isLoading])
 
@@ -140,6 +134,10 @@ export function SplineBackground({ isLoading }: SplineBackgroundProps) {
     <div
       ref={containerRef}
       className="fixed inset-0 z-0"
+      style={{
+        willChange: 'opacity',
+        backfaceVisibility: 'hidden',
+      }}
     >
       <div
         ref={splineWrapperRef}
@@ -149,6 +147,7 @@ export function SplineBackground({ isLoading }: SplineBackgroundProps) {
           transform: 'scale(0.6) translateX(25%)',
           transformOrigin: 'center center',
           willChange: 'transform, opacity',
+          backfaceVisibility: 'hidden',
         }}
       >
         <Spline
@@ -159,4 +158,4 @@ export function SplineBackground({ isLoading }: SplineBackgroundProps) {
       </div>
     </div>
   )
-}
+})
