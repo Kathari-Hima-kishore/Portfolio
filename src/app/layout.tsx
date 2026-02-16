@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] })
 
 import { MobileWarning } from '@/components/ui/MobileWarning'
+import { ScaleWrapper } from '@/components/ui/ScaleWrapper'
 
 export const metadata: Metadata = {
   title: 'Portfolio | Hima Kishore ',
@@ -26,7 +27,9 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} bg-bg text-text overflow-x-hidden`}>
         <MobileWarning />
-        {children}
+        <ScaleWrapper>
+          {children}
+        </ScaleWrapper>
       </body>
     </html>
   )

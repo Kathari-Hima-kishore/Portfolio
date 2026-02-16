@@ -215,7 +215,7 @@ export const SplineBackground = memo(function SplineBackground({ isLoading, acti
           willChange: 'opacity',
           backfaceVisibility: 'hidden',
           // Disable mouse interaction in Phase 1 (Hero), enable in others (Skills, etc)
-          pointerEvents: 'auto'
+          pointerEvents: activePhase === 1 ? 'none' : 'auto'
         }}
       >
 
