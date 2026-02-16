@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback, memo } from 'react'
 import Spline from '@splinetool/react-spline'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { FaVolumeMute } from 'react-icons/fa'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -21,36 +22,57 @@ export const SplineBackground = memo(function SplineBackground({ isLoading, acti
   const [audioEnabled, setAudioEnabled] = useState(false)
 
   // Audio initialization logic
-  const initAudio = useCallback(() => {
+  // Audio initialization logic
+  const initAudio = useCallback(async () => {
+    let success = false;
+
     // 1. Resume global context
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext
     if (AudioContext) {
-      new AudioContext().resume().catch(() => { })
+      try {
+        const ctx = new AudioContext()
+        if (ctx.state === 'suspended') {
+          await ctx.resume();
+        }
+        if (ctx.state === 'running') {
+          success = true;
+        }
+      } catch (e) {
+        console.warn("Audio resume failed", e)
+      }
     }
 
     // 2. Resume Spline's specific context via runtime
     const app = splineInstanceRef.current
     if (app) {
-      // Try to find the runtime
-      // Spline react-spline often exposes the application instance which has .runtime or ._runtime
-      // or sometimes the app IS the runtime wrapper.
       const runtime = app.runtime || app._runtime || app
-
       if (runtime) {
-        if (runtime.audioContext) runtime.audioContext.resume();
-        if (runtime.context) runtime.context.resume();
+        if (runtime.audioContext) {
+          try {
+            await runtime.audioContext.resume();
+            if (runtime.audioContext.state === 'running') success = true;
+          } catch { }
+        }
+        if (runtime.context) {
+          try {
+            await runtime.context.resume();
+            if (runtime.context.state === 'running') success = true;
+          } catch { }
+        }
 
-        // Try to resume all sounds if exposed
         if (runtime.sounds) {
           Object.values(runtime.sounds).forEach((sound: any) => {
-            if (sound && sound.context) sound.context.resume();
-            if (sound && sound.source && sound.source.context) sound.source.context.resume();
+            if (sound && sound.context) sound.context.resume().catch(() => { });
+            if (sound && sound.source && sound.source.context) sound.source.context.resume().catch(() => { });
           });
         }
       }
     }
 
-    setAudioEnabled(true)
+    if (success) {
+      setAudioEnabled(true)
+      console.log("Audio Enabled Successfully")
+    }
   }, [])
 
   // Attach listeners to container for immediate interaction capture
@@ -193,7 +215,7 @@ export const SplineBackground = memo(function SplineBackground({ isLoading, acti
           willChange: 'opacity',
           backfaceVisibility: 'hidden',
           // Disable mouse interaction in Phase 1 (Hero), enable in others (Skills, etc)
-          pointerEvents: activePhase === 1 ? 'none' : 'auto'
+          pointerEvents: 'auto'
         }}
       >
 
@@ -215,6 +237,20 @@ export const SplineBackground = memo(function SplineBackground({ isLoading, acti
             className="w-full h-full"
           />
         </div>
+
+        {/* Audio Enable Button - Only visible in Phase 2 (Skills) if audio is not yet enabled */}
+        {activePhase === 2 && !audioEnabled && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              initAudio();
+            }}
+            className="fixed bottom-8 left-8 z-[9999] flex items-center gap-3 px-5 py-3 bg-black/40 backdrop-blur-md rounded-full text-white/80 hover:text-white hover:bg-black/60 transition-all border border-white/10 group cursor-pointer"
+          >
+            <FaVolumeMute className="text-lg group-hover:scale-110 transition-transform" />
+            <span className="text-sm font-medium tracking-wide">Enable Sounds</span>
+          </button>
+        )}
       </div>
     </>
   )
