@@ -24,6 +24,22 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <link rel="preload" href="/mething_copy.spline" as="fetch" crossOrigin="anonymous" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window._audioContexts = [];
+              const originalCreate = window.AudioContext || window.webkitAudioContext;
+              if (originalCreate) {
+                  window.AudioContext = function(...args) {
+                    const ctx = new originalCreate(...args);
+                    window._audioContexts.push(ctx);
+                    return ctx;
+                  };
+                  window.webkitAudioContext = window.AudioContext;
+              }
+            `,
+          }}
+        />
       </head>
       <body className={`${inter.className} bg-bg text-text overflow-x-hidden`}>
         <MobileWarning />

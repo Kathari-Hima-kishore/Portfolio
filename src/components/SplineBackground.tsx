@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback, memo } from 'react'
 import Spline from '@splinetool/react-spline'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { FaVolumeMute } from 'react-icons/fa'
+import { FaVolumeMute, FaVolumeUp } from 'react-icons/fa'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -88,6 +88,30 @@ export const SplineBackground = memo(function SplineBackground({ isLoading, acti
     events.forEach(e => window.addEventListener(e, handler, { once: true, passive: true }))
     return () => events.forEach(e => window.removeEventListener(e, handler))
   }, [initAudio])
+
+  // Enforce Mute Loop (The "Hammer")
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+
+    if (!audioEnabled) {
+      interval = setInterval(() => {
+        const app = splineInstanceRef.current
+        const runtime = app?.runtime || app?._runtime || app
+
+        if (runtime) {
+          // Force suspend if it somehow woke up
+          if (runtime.audioContext && runtime.audioContext.state === 'running') {
+            runtime.audioContext.suspend();
+          }
+          if (runtime.context && runtime.context.state === 'running') {
+            runtime.context.suspend();
+          }
+        }
+      }, 200) // Check every 200ms
+    }
+
+    return () => clearInterval(interval)
+  }, [audioEnabled])
 
   // Spline loaded callback. disable orbit controls only
   const onLoad = useCallback((splineApp: any) => {
@@ -238,17 +262,42 @@ export const SplineBackground = memo(function SplineBackground({ isLoading, acti
           />
         </div>
 
-        {/* Audio Enable Button - Only visible in Phase 2 (Skills) if audio is not yet enabled */}
-        {activePhase === 2 && !audioEnabled && (
+        {/* Sound Toggle Button - Visible in Phase 2+ */}
+        {activePhase >= 2 && (
           <button
             onClick={(e) => {
               e.stopPropagation();
-              initAudio();
+              const app = splineInstanceRef.current
+              const runtime = app?.runtime || app?._runtime || app
+
+              if (audioEnabled) {
+                // Mute logic - God Mode
+                if ((window as any)._audioContexts) {
+                  (window as any)._audioContexts.forEach((ctx: AudioContext) => {
+                    ctx.suspend();
+                  });
+                }
+                setAudioEnabled(false);
+              } else {
+                // Unmute logic - God Mode
+                if ((window as any)._audioContexts) {
+                  (window as any)._audioContexts.forEach((ctx: AudioContext) => {
+                    ctx.resume();
+                  });
+                }
+                initAudio();
+              }
             }}
             className="fixed bottom-8 left-8 z-[9999] flex items-center gap-3 px-5 py-3 bg-black/40 backdrop-blur-md rounded-full text-white/80 hover:text-white hover:bg-black/60 transition-all border border-white/10 group cursor-pointer"
           >
-            <FaVolumeMute className="text-lg group-hover:scale-110 transition-transform" />
-            <span className="text-sm font-medium tracking-wide">Enable Sounds</span>
+            {audioEnabled ? (
+              <FaVolumeUp className="text-lg group-hover:scale-110 transition-transform" />
+            ) : (
+              <FaVolumeMute className="text-lg group-hover:scale-110 transition-transform" />
+            )}
+            <span className="text-sm font-medium tracking-wide">
+              {audioEnabled ? 'Sound On' : 'Sound Off'}
+            </span>
           </button>
         )}
       </div>
