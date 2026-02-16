@@ -2,9 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 /* Custom CSS Variables */
 :root {
-  --bg: #060608;
+  --bg: #000000;
   --surface: #111115;
   --text: #f0f0f2;
   --text-muted: #77777a;
@@ -35,17 +37,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Decorative grain overlay — lightweight CSS noise */
+/* Decorative grain overlay */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 50;
   pointer-events: none;
-  opacity: 0.03;
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAAElBMVEUAAAAAAAAAAAAAAAAAAAAAAADgKxmiAAAABnRSTlMFCA0RFRkEEEsFAAAAjklEQVQ4y63TQQ6AIAwE0MZ4/yt7AUsLuND4N4T5UFhQrf2B2nMfrumu6+q4Z/sjz/ufPhHxOFUBEJlAIHvxoaQLIPIPwGlKtwBykiTAEC8q8IJnORsA4v0oAFj/ogZwvYUcAG++bABcb08B6LkvJYD2dyoA+x1eYPvvnwHsV14H4P6RAtz4sP/vDcD+JXwAK5VzpLCCJE4AAAAASUVORK5CYII=");
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-repeat: repeat;
-  background-size: 48px 48px;
+  background-size: 128px 128px;
 }
 
 /* Text edge outline effect */
@@ -54,13 +56,28 @@ body::after {
   text-stroke: 1px rgba(255, 255, 255, 0.1);
 }
 
-/*
- * Canvas overlay mode — matches the reference 3d-portfolio pattern.
- * The overlay container gets pointer-events: none so the Spline canvas
- * behind it receives hover. Text & interactive elements get pointer-events
- * back so they remain clickable/selectable. Scrolling works because the
- * browser scrolls the document, not these overlay elements.
- */
+/* Custom animations */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scrollPulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scaleY(0.6);
+  }
+}
+
+/* Utility classes */
 .canvas-overlay-mode {
   pointer-events: none;
 }
@@ -80,12 +97,112 @@ body::after {
 .canvas-overlay-mode h5,
 .canvas-overlay-mode h6,
 .canvas-overlay-mode span,
-.canvas-overlay-mode svg {
+.canvas-overlay-mode img,
+.canvas-overlay-mode svg,
+.canvas-overlay-mode .pointer-events-auto {
   pointer-events: auto;
 }
 
-/* Performance optimizations */
-section {
-  contain: layout style paint;
-  content-visibility: auto;
+/* Cube Button Styles (From Uiverse.io by gagan-gv) */
+.btn-cube {
+  display: block;
+  padding: 0.7em 1em;
+  background: transparent;
+  outline: none;
+  border: 0;
+  color: #d4af37;
+  letter-spacing: 0.1em;
+  font-family: monospace;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.cube {
+  position: relative;
+  transition: all 0.5s;
+}
+
+.cube .bg-top {
+  position: absolute;
+  height: 10px;
+  background: #d4af37;
+  bottom: 100%;
+  left: 5px;
+  right: -5px;
+  transform: skew(-45deg, 0);
+  margin: 0;
+  transition: all 0.4s;
+}
+
+.cube .bg-top .bg-inner {
+  bottom: 0;
+}
+
+.cube .bg {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  top: 0;
+  right: 0;
+  background: #d4af37;
+  transition: all 0.4s;
+}
+
+.cube .bg-right {
+  position: absolute;
+  background: #d4af37;
+  top: -5px;
+  z-index: 0;
+  bottom: 5px;
+  width: 10px;
+  left: 100%;
+  transform: skew(0, -45deg);
+  transition: all 0.4s;
+}
+
+.cube .bg-right .bg-inner {
+  left: 0;
+}
+
+.cube .bg-inner {
+  background: #28282d;
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 2px;
+  bottom: 2px;
+}
+
+.cube .text {
+  position: relative;
+  transition: all 0.4s;
+}
+
+.cube:hover .bg-inner {
+  background: #d4af37;
+  transition: all 0.4s;
+}
+
+.cube:hover .text {
+  color: #28282d;
+  transition: all 0.4s;
+}
+
+.cube:hover .bg-right,
+.cube:hover .bg,
+.cube:hover .bg-top {
+  background: #28282d;
+}
+
+.cube:active {
+  z-index: 9999;
+  animation: bounce 0.1s linear;
+}
+
+@keyframes bounce {
+  50% {
+    transform: scale(0.9);
+  }
 }

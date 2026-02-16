@@ -9,16 +9,67 @@ gsap.registerPlugin(ScrollTrigger)
 
 interface SplineBackgroundProps {
   isLoading: boolean
+  activePhase: number
 }
 
-export const SplineBackground = memo(function SplineBackground({ isLoading }: SplineBackgroundProps) {
+export const SplineBackground = memo(function SplineBackground({ isLoading, activePhase }: SplineBackgroundProps) {
   const [isLoaded, setIsLoaded] = useState(false)
+  const splineInstanceRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const splineWrapperRef = useRef<HTMLDivElement>(null)
   const triggersRef = useRef<ScrollTrigger[]>([])
+  const [audioEnabled, setAudioEnabled] = useState(false)
 
-  // Spline loaded callback — disable orbit controls only
+  // Audio initialization logic
+  const initAudio = useCallback(() => {
+    // 1. Resume global context
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext
+    if (AudioContext) {
+      new AudioContext().resume().catch(() => { })
+    }
+
+    // 2. Resume Spline's specific context via runtime
+    const app = splineInstanceRef.current
+    if (app) {
+      // Try to find the runtime
+      // Spline react-spline often exposes the application instance which has .runtime or ._runtime
+      // or sometimes the app IS the runtime wrapper.
+      const runtime = app.runtime || app._runtime || app
+
+      if (runtime) {
+        if (runtime.audioContext) runtime.audioContext.resume();
+        if (runtime.context) runtime.context.resume();
+
+        // Try to resume all sounds if exposed
+        if (runtime.sounds) {
+          Object.values(runtime.sounds).forEach((sound: any) => {
+            if (sound && sound.context) sound.context.resume();
+            if (sound && sound.source && sound.source.context) sound.source.context.resume();
+          });
+        }
+      }
+    }
+
+    setAudioEnabled(true)
+  }, [])
+
+  // Attach listeners to container for immediate interaction capture
+  // We use onMouseEnter to trigger as soon as mouse moves over the window
+  const handleInteraction = useCallback(() => {
+    initAudio()
+  }, [initAudio])
+
+  // Also global listeners just in case
+  useEffect(() => {
+    const events = ['click', 'touchstart', 'keydown', 'mousemove', 'wheel']
+    const handler = () => initAudio()
+    events.forEach(e => window.addEventListener(e, handler, { once: true, passive: true }))
+    return () => events.forEach(e => window.removeEventListener(e, handler))
+  }, [initAudio])
+
+  // Spline loaded callback. disable orbit controls only
   const onLoad = useCallback((splineApp: any) => {
+    splineInstanceRef.current = splineApp
     try {
       // Disable orbit controls (zoom, pan, rotate via drag)
       const controls = splineApp?._orbitControls || splineApp?._controls
@@ -131,31 +182,53 @@ export const SplineBackground = memo(function SplineBackground({ isLoading }: Sp
   if (isLoading) return null
 
   return (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 z-0"
-      style={{
-        willChange: 'opacity',
-        backfaceVisibility: 'hidden',
-      }}
-    >
+    <>
       <div
-        ref={splineWrapperRef}
-        className="w-full h-full"
+        ref={containerRef}
+        className="fixed inset-0 z-0"
+        onMouseEnter={handleInteraction}
+        onClick={handleInteraction}
+        onTouchStart={handleInteraction}
         style={{
-          opacity: 0,
-          transform: 'scale(0.6) translateX(25%)',
-          transformOrigin: 'center center',
-          willChange: 'transform, opacity',
+          willChange: 'opacity',
           backfaceVisibility: 'hidden',
+          // Disable mouse interaction in Phase 1 (Hero), enable in others (Skills, etc)
+          pointerEvents: activePhase === 1 ? 'none' : 'auto'
         }}
       >
-        <Spline
-          scene="/mething_copy.spline"
-          onLoad={onLoad}
+
+        {!audioEnabled && (
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              handleInteraction();
+            }}
+            className="absolute inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-pointer transition-opacity duration-500 hover:bg-black/70"
+          >
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white mb-2">Click to Start</p>
+              <p className="text-white/50 text-sm">Enable immersive audio experience</p>
+            </div>
+          </div>
+        )}
+        <div
+          ref={splineWrapperRef}
           className="w-full h-full"
-        />
+          style={{
+            opacity: 0,
+            transform: 'scale(0.6) translateX(25%)',
+            transformOrigin: 'center center',
+            willChange: 'transform, opacity',
+            backfaceVisibility: 'hidden',
+          }}
+        >
+          <Spline
+            scene="/mething_copy.spline"
+            onLoad={onLoad}
+            className="w-full h-full"
+          />
+        </div>
       </div>
-    </div>
+    </>
   )
 })
