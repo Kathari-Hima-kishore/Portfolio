@@ -33,7 +33,7 @@ export const ContactSection = memo(function ContactSection() {
                     <a href="tel:+918688339330" className="p-6 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 hover:-translate-y-1 transition-all group">
                         <FaPhone className="text-3xl text-green-400 mb-4 mx-auto group-hover:scale-110 transition-transform" />
                         <h3 className="text-white font-bold mb-1">Phone</h3>
-                        <p className="text-white/40 text-sm">+91 8688339330</p>
+                        <p className="text-white/40 text-sm">+91 86883 39330</p>
                     </a>
                     <div className="p-6 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 hover:-translate-y-1 transition-all group">
                         <FaMapMarkerAlt className="text-3xl text-red-400 mb-4 mx-auto group-hover:scale-110 transition-transform" />
