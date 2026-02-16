@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { memo } from 'react'
 import { FaExternalLinkAlt } from 'react-icons/fa'
+import Image from 'next/image'
 
 export const ProjectsSection = memo(function ProjectsSection() {
     const sectionVariants = {
@@ -52,11 +53,14 @@ export const ProjectsSection = memo(function ProjectsSection() {
                         </a>
                     </div>
                 </div>
+
                 <div className="w-full md:w-1/2 h-[400px] bg-gradient-to-br from-surface to-black border border-white/10 rounded-2xl relative overflow-hidden group">
-                    <img
+                    <Image
                         src="/EMS.png"
                         alt="Event Management System"
-                        className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-700 group-hover:scale-105"
+                        fill
+                        className="object-contain object-center transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, 50vw"
                     />
                     <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
                 </div>

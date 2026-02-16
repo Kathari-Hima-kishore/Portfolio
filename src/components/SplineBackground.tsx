@@ -197,20 +197,7 @@ export const SplineBackground = memo(function SplineBackground({ isLoading, acti
         }}
       >
 
-        {!audioEnabled && (
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              handleInteraction();
-            }}
-            className="absolute inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-pointer transition-opacity duration-500 hover:bg-black/70"
-          >
-            <div className="text-center">
-              <p className="text-2xl font-bold text-white mb-2">Click to Start</p>
-              <p className="text-white/50 text-sm">Enable immersive audio experience</p>
-            </div>
-          </div>
-        )}
+
         <div
           ref={splineWrapperRef}
           className="w-full h-full"
