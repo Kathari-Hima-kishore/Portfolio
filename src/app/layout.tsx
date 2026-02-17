@@ -40,13 +40,6 @@ export const metadata: Metadata = {
     description:
       'Explore every dimension of design and development. Interactive portfolio featuring 3D experiences, projects, and skills.',
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Kathari Hima Kishore | Full Stack Developer & Designer',
-    description:
-      'Interactive portfolio featuring 3D experiences, projects, and skills.',
-    creator: '@himaKishore',
-  },
   icons: {
     icon: '/favicon.ico',
   },
