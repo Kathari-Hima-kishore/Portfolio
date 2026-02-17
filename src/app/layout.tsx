@@ -50,6 +50,9 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
+  verification: {
+    google: 'IH_kb7SV0TwGIPepllI6UuR65658mPz7cvv70ypVsCo',
+  },
 }
 
 // JSON-LD Person structured data
