@@ -57,6 +57,7 @@ const jsonLd = {
   jobTitle: 'Full Stack Developer & Designer',
   sameAs: [
     'https://www.linkedin.com/in/kathari-hima-kishore/',
+    'https://github.com/Kathari-Hima-kishore',
   ],
   description:
     'Full Stack Developer & Designer specializing in interactive web experiences, 3D design, and modern web technologies.',
