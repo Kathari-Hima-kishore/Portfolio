@@ -7,12 +7,63 @@ const inter = Inter({ subsets: ['latin'] })
 import { MobileWarning } from '@/components/ui/MobileWarning'
 import { ScaleWrapper } from '@/components/ui/ScaleWrapper'
 
+const SITE_URL = 'https://kathari-hima-kishore.tech'
+
 export const metadata: Metadata = {
-  title: 'Portfolio | Hima Kishore ',
-  description: 'Explore every dimension of design and development',
+  title: 'Kathari Hima Kishore | Full Stack Developer & Designer',
+  description:
+    'Portfolio of Kathari Hima Kishore — Full Stack Developer & Designer specializing in interactive web experiences, 3D design, and modern web technologies.',
+  keywords: [
+    'Kathari Hima Kishore',
+    'Hima Kishore',
+    'portfolio',
+    'full stack developer',
+    'web developer',
+    'designer',
+    'Next.js',
+    'React',
+    'Spline',
+    '3D web',
+  ],
+  authors: [{ name: 'Kathari Hima Kishore', url: SITE_URL }],
+  creator: 'Kathari Hima Kishore',
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: SITE_URL,
+    siteName: 'Kathari Hima Kishore — Portfolio',
+    title: 'Kathari Hima Kishore | Full Stack Developer & Designer',
+    description:
+      'Explore every dimension of design and development. Interactive portfolio featuring 3D experiences, projects, and skills.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kathari Hima Kishore | Full Stack Developer & Designer',
+    description:
+      'Interactive portfolio featuring 3D experiences, projects, and skills.',
+    creator: '@himaKishore',
+  },
   icons: {
     icon: '/favicon.ico',
   },
+}
+
+// JSON-LD Person structured data
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Kathari Hima Kishore',
+  url: SITE_URL,
+  jobTitle: 'Full Stack Developer & Designer',
+  sameAs: [
+    'https://www.linkedin.com/in/kathari-hima-kishore/',
+  ],
+  description:
+    'Full Stack Developer & Designer specializing in interactive web experiences, 3D design, and modern web technologies.',
 }
 
 export default function RootLayout({
@@ -24,6 +75,10 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <link rel="preload" href="/mething_copy.spline" as="fetch" crossOrigin="anonymous" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `

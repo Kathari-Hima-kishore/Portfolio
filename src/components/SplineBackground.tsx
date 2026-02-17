@@ -20,52 +20,41 @@ export const SplineBackground = memo(function SplineBackground({ isLoading, acti
   const splineWrapperRef = useRef<HTMLDivElement>(null)
   const triggersRef = useRef<ScrollTrigger[]>([])
   const [audioEnabled, setAudioEnabled] = useState(false)
+  const isManuallyMuted = useRef(true) // Default: Starts Muted (User must enable)
 
-  // Audio initialization logic
   // Audio initialization logic
   const initAudio = useCallback(async () => {
     let success = false;
+    const audioContexts = (window as any)._audioContexts || [];
 
-    // 1. Resume global context
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext
-    if (AudioContext) {
-      try {
-        const ctx = new AudioContext()
-        if (ctx.state === 'suspended') {
+    // 1. Resume global context(s)
+    if (audioContexts.length > 0) {
+      await Promise.all(audioContexts.map(async (ctx: AudioContext) => {
+        try {
           await ctx.resume();
-        }
-        if (ctx.state === 'running') {
+          if (ctx.state === 'running') success = true;
+        } catch { }
+      }));
+    } else {
+      // Only create new if none exist
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext
+      if (AudioContext) {
+        try {
+          const ctx = new AudioContext(); // This will be pushed to _audioContexts by our patch
+          await ctx.resume();
           success = true;
+        } catch (e) {
+          console.warn("Audio init failed", e)
         }
-      } catch (e) {
-        console.warn("Audio resume failed", e)
       }
     }
 
-    // 2. Resume Spline's specific context via runtime
+    // 2. Resume Spline's specific context via runtime (legacy check, just in case)
     const app = splineInstanceRef.current
     if (app) {
       const runtime = app.runtime || app._runtime || app
-      if (runtime) {
-        if (runtime.audioContext) {
-          try {
-            await runtime.audioContext.resume();
-            if (runtime.audioContext.state === 'running') success = true;
-          } catch { }
-        }
-        if (runtime.context) {
-          try {
-            await runtime.context.resume();
-            if (runtime.context.state === 'running') success = true;
-          } catch { }
-        }
-
-        if (runtime.sounds) {
-          Object.values(runtime.sounds).forEach((sound: any) => {
-            if (sound && sound.context) sound.context.resume().catch(() => { });
-            if (sound && sound.source && sound.source.context) sound.source.context.resume().catch(() => { });
-          });
-        }
+      if (runtime?.audioContext) {
+        try { await runtime.audioContext.resume(); } catch { }
       }
     }
 
@@ -78,35 +67,31 @@ export const SplineBackground = memo(function SplineBackground({ isLoading, acti
   // Attach listeners to container for immediate interaction capture
   // We use onMouseEnter to trigger as soon as mouse moves over the window
   const handleInteraction = useCallback(() => {
-    initAudio()
-  }, [initAudio])
+    if (!audioEnabled && !isManuallyMuted.current) initAudio()
+  }, [initAudio, audioEnabled])
 
   // Also global listeners just in case
   useEffect(() => {
     const events = ['click', 'touchstart', 'keydown', 'mousemove', 'wheel']
-    const handler = () => initAudio()
+    const handler = () => {
+      if (!audioEnabled && !isManuallyMuted.current) initAudio()
+    }
     events.forEach(e => window.addEventListener(e, handler, { once: true, passive: true }))
     return () => events.forEach(e => window.removeEventListener(e, handler))
-  }, [initAudio])
+  }, [initAudio, audioEnabled])
 
-  // Enforce Mute Loop (The "Hammer")
+  // Enforce Mute Loop (The "Hammer") - Updated to use God Mode list
   useEffect(() => {
     let interval: NodeJS.Timeout
 
     if (!audioEnabled) {
       interval = setInterval(() => {
-        const app = splineInstanceRef.current
-        const runtime = app?.runtime || app?._runtime || app
-
-        if (runtime) {
-          // Force suspend if it somehow woke up
-          if (runtime.audioContext && runtime.audioContext.state === 'running') {
-            runtime.audioContext.suspend();
+        const audioContexts = (window as any)._audioContexts || [];
+        audioContexts.forEach((ctx: AudioContext) => {
+          if (ctx.state === 'running') {
+            ctx.suspend().catch(() => { });
           }
-          if (runtime.context && runtime.context.state === 'running') {
-            runtime.context.suspend();
-          }
-        }
+        });
       }, 200) // Check every 200ms
     }
 
@@ -277,6 +262,7 @@ export const SplineBackground = memo(function SplineBackground({ isLoading, acti
                     ctx.suspend();
                   });
                 }
+                isManuallyMuted.current = true;
                 setAudioEnabled(false);
               } else {
                 // Unmute logic - God Mode
@@ -285,6 +271,7 @@ export const SplineBackground = memo(function SplineBackground({ isLoading, acti
                     ctx.resume();
                   });
                 }
+                isManuallyMuted.current = false;
                 initAudio();
               }
             }}
