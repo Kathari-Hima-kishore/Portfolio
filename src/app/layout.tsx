@@ -41,7 +41,7 @@ export const metadata: Metadata = {
       'Explore every dimension of design and development. Interactive portfolio featuring 3D experiences, projects, and skills.',
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.ico?v=2',
   },
   verification: {
     google: 'IH_kb7SV0TwGIPepllI6UuR65658mPz7cvv70ypVsCo',
