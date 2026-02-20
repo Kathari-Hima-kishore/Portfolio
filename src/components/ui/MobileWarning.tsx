@@ -30,10 +30,10 @@ export const MobileWarning = ({ children }: { children: React.ReactNode }) => {
                 <div className="max-w-md space-y-6">
                     <h2 className="text-2xl font-bold text-accent">Landscape Orientation Required</h2>
                     <p className="text-white/70 leading-relaxed text-lg">
-                        This Portfolio is not optimized for portrait screens.
+                        This Portfolio is not optimized for portrait screens and Mobile Devices.
                     </p>
                     <p className="text-white/50 text-sm">
-                        Please switch to a <strong>Desktop mode</strong> or use a<strong>Laptop</strong>for the intended functionality.
+                        Please switch to <strong>Desktop mode</strong> or use a <strong>Laptop</strong>for the intended functionality.
                     </p>
                 </div>
             </div>
