@@ -4,7 +4,8 @@ import SmoothScroll from '@/components/SmoothScroll'
 
 import { Loader } from '@/components/ui/Loader'
 import { PhaseIndicator } from '@/components/ui/PhaseIndicator'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { logEvent } from '@/lib/firebase'
 
 import dynamic from 'next/dynamic'
 
@@ -50,6 +51,14 @@ export default function Home() {
             const phaseId = parseInt(entry.target.id.replace('phase-', ''), 10)
             if (!isNaN(phaseId)) {
               setActivePhase(phaseId)
+              // Track which section the user scrolled into
+              const phase = PHASES.find(p => p.id === phaseId)
+              if (phase) {
+                logEvent('section_view', {
+                  section_id: phaseId,
+                  section_name: phase.name,
+                })
+              }
             }
           }
         })

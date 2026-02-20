@@ -6,6 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 import { MobileWarning } from '@/components/ui/MobileWarning'
 import { ScaleWrapper } from '@/components/ui/ScaleWrapper'
+import { AnalyticsProvider } from '@/components/AnalyticsProvider'
 
 const SITE_URL = 'https://kathari-hima-kishore.tech'
 
@@ -94,6 +95,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} bg-bg text-text overflow-x-hidden`}>
+        <AnalyticsProvider />
         <MobileWarning />
         <ScaleWrapper>
           {children}
