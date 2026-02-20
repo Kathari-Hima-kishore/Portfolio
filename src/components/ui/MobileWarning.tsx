@@ -28,12 +28,12 @@ export const MobileWarning = ({ children }: { children: React.ReactNode }) => {
         return (
             <div className="fixed inset-0 z-[9999] bg-black text-white flex flex-col items-center justify-center p-8 text-center">
                 <div className="max-w-md space-y-6">
-                    <h2 className="text-2xl font-bold text-accent">Desktop Orientation Required</h2>
+                    <h2 className="text-2xl font-bold text-accent">Landscape Orientation Required</h2>
                     <p className="text-white/70 leading-relaxed text-lg">
-                        This Portfolio is not optimized for mobile phones or portrait screens.
+                        This Portfolio is not optimized for portrait screens.
                     </p>
                     <p className="text-white/50 text-sm">
-                        Please switch to a <strong>Desktop</strong> or <strong>Landscape</strong> orientation for the intended experience.
+                        Please switch to a <strong>Desktop mode</strong> or use a<strong>Laptop</strong>for the intended functionality.
                     </p>
                 </div>
             </div>
