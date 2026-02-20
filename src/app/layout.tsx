@@ -120,10 +120,11 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} bg-bg text-text overflow-x-hidden`}>
         <AnalyticsProvider />
-        <MobileWarning />
-        <ScaleWrapper>
-          {children}
-        </ScaleWrapper>
+        <MobileWarning>
+          <ScaleWrapper>
+            {children}
+          </ScaleWrapper>
+        </MobileWarning>
       </body>
     </html>
   )
