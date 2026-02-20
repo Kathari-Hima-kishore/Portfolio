@@ -33,7 +33,7 @@ export const MobileWarning = ({ children }: { children: React.ReactNode }) => {
                         This Portfolio is not optimized for portrait screens and Mobile Devices.
                     </p>
                     <p className="text-white/50 text-sm">
-                        Please switch to <strong>Desktop mode</strong> or use a <strong>Laptop</strong>for the intended functionality.
+                        Please switch to <strong>Laptop </strong> or use a <strong>Laptop/Desktop </strong>for the intended functionality.
                     </p>
                 </div>
             </div>
