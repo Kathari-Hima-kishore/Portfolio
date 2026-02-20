@@ -1,5 +1,7 @@
 'use client'
 
+import { useLenis } from 'lenis/react'
+
 interface Phase {
   id: number
   name: string
@@ -12,10 +14,16 @@ interface PhaseIndicatorProps {
 }
 
 export function PhaseIndicator({ phases, activePhase }: PhaseIndicatorProps) {
+  const lenis = useLenis()
+
   const scrollToPhase = (phaseId: number) => {
     const element = document.getElementById(`phase-${phaseId}`)
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
+      if (lenis) {
+        lenis.scrollTo(element, { offset: 0, duration: 1.5 })
+      } else {
+        element.scrollIntoView({ behavior: 'smooth' })
+      }
     }
   }
 
@@ -32,14 +40,13 @@ export function PhaseIndicator({ phases, activePhase }: PhaseIndicatorProps) {
           <div
             className={`
               w-3 h-3 rounded-full border-2 transition-all duration-300
-              ${
-                activePhase === phase.id
-                  ? 'bg-white border-white scale-125'
-                  : 'bg-transparent border-white/40 hover:border-white/80'
+              ${activePhase === phase.id
+                ? 'bg-white border-white scale-125'
+                : 'bg-transparent border-white/40 hover:border-white/80'
               }
             `}
           />
-          
+
           {/* Phase label (appears on hover) */}
           <div
             className={`

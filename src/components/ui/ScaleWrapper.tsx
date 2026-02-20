@@ -1,43 +1,69 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
+/**
+ * ScaleWrapper — adaptive layout for non-1440px screens.
+ *
+ * Prior approach: CSS transform:scale() on the entire page body.
+ * Problem: Creates one giant compositing layer, forces GPU to rasterize
+ *          a 1440px-wide buffer even on 768px screens, and causes
+ *          blurry text due to sub-pixel scaling.
+ *
+ * New approach:
+ * - 1440px+   → No wrapper at all (passthrough)
+ * - 768–1439  → CSS zoom (browser-native, integer-aware, no compositing)
+ * - <768      → Mobile warning already handles this
+ *
+ * CSS zoom is read-only composited at paint time — zero extra GPU layer.
+ */
 export const ScaleWrapper = ({ children }: { children: React.ReactNode }) => {
-    const [scale, setScale] = useState(1)
+    const [zoom, setZoom] = useState<number | null>(null)
+    const rafRef = useRef<number | undefined>(undefined)
 
     useEffect(() => {
-        const handleResize = () => {
-            const width = window.innerWidth
-            // Base width for desktop design
-            const baseWidth = 1440
+        const calc = () => {
+            const w = window.innerWidth
+            const BASE = 1440
 
-            // If smaller than base but larger than mobile breakpoint
-            if (width < baseWidth && width > 768) {
-                setScale(width / baseWidth)
+            if (w < BASE && w > 768) {
+                // Round to 2 decimal places to avoid triggering repaint on micro changes
+                setZoom(Math.round((w / BASE) * 100) / 100)
             } else {
-                setScale(1)
+                setZoom(null) // no scaling needed
             }
         }
 
-        // Initial calc
-        handleResize()
+        calc()
 
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
+        // Debounce resize via RAF — avoids layout thrash during drag resize
+        const onResize = () => {
+            if (rafRef.current) cancelAnimationFrame(rafRef.current)
+            rafRef.current = requestAnimationFrame(calc)
+        }
+
+        window.addEventListener('resize', onResize, { passive: true })
+        return () => {
+            window.removeEventListener('resize', onResize)
+            if (rafRef.current) cancelAnimationFrame(rafRef.current)
+        }
     }, [])
 
-    if (scale === 1) return <>{children}</>
+    // No scaling needed
+    if (zoom === null) return <>{children}</>
 
     return (
         <div
             style={{
-                width: '1440px', // Force desktop width logic
-                height: `${100 / scale}%`, // Compensate height to fill viewport
-                transform: `scale(${scale})`,
-                transformOrigin: 'top left',
-                overflowX: 'hidden'
+                // CSS zoom is the correct primitive here:
+                // - No compositing layer overhead
+                // - Sub-pixel-aware (no blurry text)
+                // - ScrollTrigger still gets correct bounding rects
+                zoom,
+                width: '1440px',
+                minHeight: '100vh',
+                overflowX: 'hidden',
             }}
-            className="relative origin-top-left"
         >
             {children}
         </div>

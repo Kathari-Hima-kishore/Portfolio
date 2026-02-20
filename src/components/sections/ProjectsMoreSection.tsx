@@ -7,7 +7,7 @@ import { FaExternalLinkAlt, FaCloud, FaCode } from 'react-icons/fa'
 export const ProjectsMoreSection = memo(function ProjectsMoreSection() {
     const sectionVariants = {
         hidden: { opacity: 0, y: 50 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+        visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" as const } }
     }
 
     return (

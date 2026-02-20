@@ -90,6 +90,30 @@ export default function RootLayout({
                   };
                   window.webkitAudioContext = window.AudioContext;
               }
+              // Stop Next.js 15 from showing full-page Dev Overlay for harmless Spline OpenType warnings
+              const originalError = console.error;
+              console.error = function(...args) {
+                const msg = args.map(a => (a && typeof a === 'object') ? (a.message || '') : String(a)).join(' ');
+                if (msg.includes('Unsupported OpenType signature PK')) {
+                  return; // Swallow it completely
+                }
+                originalError.apply(console, args);
+              };
+              if (typeof window !== 'undefined') {
+                window.addEventListener('error', function(e) {
+                  if (e.message && e.message.includes('Unsupported OpenType signature PK')) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                  }
+                }, true);
+                window.addEventListener('unhandledrejection', function(e) {
+                  const msg = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
+                  if (msg.includes('Unsupported OpenType signature PK')) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                  }
+                }, true);
+              }
             `,
           }}
         />

@@ -6,8 +6,8 @@ import { FaGithub, FaEnvelope } from 'react-icons/fa'
 
 export const HeroSection = memo(function HeroSection() {
     const sectionVariants = {
-        hidden: { opacity: 0, x: -50 }, // Slide in from left
-        visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: "easeOut" } }
+        hidden: { opacity: 0, x: -50 },
+        visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: "easeOut" as const } }
     }
 
     return (

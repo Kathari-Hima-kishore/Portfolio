@@ -21,7 +21,7 @@ const StarryBackground = dynamic(() => import('@/components/StarryBackground').t
 const SplineBackground = dynamic(() => import('@/components/SplineBackground').then(mod => mod.SplineBackground), { ssr: false })
 
 const PHASES = [
-  { id: 1, name: 'Hero', title: 'Welcome' },
+  { id: 1, name: 'Introduction', title: 'Welcome' },
   { id: 2, name: 'Skills', title: 'Technical Arsenal' },
   { id: 3, name: 'Experience', title: 'Professional Journey' },
   { id: 4, name: 'Featured Project', title: 'Event Management System' },
@@ -92,7 +92,7 @@ export default function Home() {
 
       <StarryBackground />
 
-      <main className="relative z-10 canvas-overlay-mode flex flex-col gap-32 md:gap-40 pb-32">
+      <main className="relative z-10 canvas-overlay-mode flex flex-col gap-48 md:gap-72 pb-48">
         <HeroSection />
         <SkillsSection />
         <ExperienceSection />
