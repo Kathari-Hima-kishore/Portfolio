@@ -35,7 +35,7 @@ export const ExperienceSection = memo(function ExperienceSection() {
                             <ul className="text-white/70 text-sm list-disc list-inside space-y-2">
                                 <li>Acquired hands-on expertise in Azure fundamentals, AI Foundry services.</li>
                                 <li>Integrated Azure AI services into full-stack apps, managing credentials and APIs.</li>
-                                <li>Built a security vulnerability scanner analyzing 100+ target URLs for potential threats using Azure's AI services.</li>
+                                <li>Built a security vulnerability scanner analyzing 100+ target URLs for potential threats using Azure&apos;s AI services.</li>
                             </ul>
                         </div>
                     </div>

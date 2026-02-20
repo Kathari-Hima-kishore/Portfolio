@@ -19,9 +19,9 @@ export const ContactSection = memo(function ContactSection() {
                 variants={sectionVariants}
                 className="max-w-4xl w-full text-center pointer-events-auto"
             >
-                <h2 className="text-5xl font-black text-white mb-6">Let's Connect</h2>
+                <h2 className="text-5xl font-black text-white mb-6">Let&apos;s Connect</h2>
                 <p className="text-xl text-white/60 mb-12 max-w-2xl mx-auto">
-                    I'm currently looking for new opportunities as a Full Stack Cloud Engineer. Whether you have a question or just want to say hi, I'll try my best to get back to you!
+                    I&apos;m currently looking for new opportunities as a Full Stack Cloud Engineer. Whether you have a question or just want to say hi, I&apos;ll try my best to get back to you!
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
